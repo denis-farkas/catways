@@ -12,10 +12,7 @@ app.use(express.json());
 
 // Connexion MongoDB
 mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/catways", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/catways")
   .then(() => console.log("MongoDB connecté"))
   .catch((err) => console.error(err));
 

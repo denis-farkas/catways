@@ -12,11 +12,7 @@ const __dirname = path.resolve();
 async function importData() {
   try {
     await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/catways",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
+      process.env.MONGODB_URI || "mongodb://localhost:27017/catways"
     );
     console.log("Connexion MongoDB réussie");
 
