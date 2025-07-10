@@ -6,7 +6,6 @@ import userRoutes from "./routes/userRoutes.js";
 import catwayRoutes from "./routes/catwayRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-import { verifyToken } from "./controllers/userController.js";
 import cors from "cors";
 import session from "express-session";
 import path from "path";
@@ -44,7 +43,7 @@ app.use((req, res, next) => {
   ) {
     return next();
   }
-  verifyToken(req, res, next);
+  requireAuth(req, res, next);
 });
 
 // Routes

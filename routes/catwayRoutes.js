@@ -7,7 +7,7 @@ import {
   deleteCatway,
 } from "../controllers/catwayController.js";
 import reservationRoutes from "./reservationRoutes.js";
-import { verifyToken } from "../controllers/userController.js";
+// import { verifyToken } from "../controllers/userController.js"; // SUPPRIMÉ
 
 const router = Router();
 
@@ -72,7 +72,7 @@ const router = Router();
  *       400:
  *         description: Erreur de validation
  */
-router.post("/", verifyToken, createCatway);
+router.post("/", createCatway);
 
 /**
  * @swagger
@@ -152,7 +152,7 @@ router.get("/:id", getCatway);
  *       404:
  *         description: Catway non trouvé
  */
-router.put("/:id", verifyToken, updateCatway);
+router.put("/:id", updateCatway);
 
 /**
  * @swagger
@@ -175,7 +175,7 @@ router.put("/:id", verifyToken, updateCatway);
  *       404:
  *         description: Catway non trouvé
  */
-router.delete("/:id", verifyToken, deleteCatway);
+router.delete("/:id", deleteCatway);
 
 // Sous-ressource réservations
 router.use("/:catwayNumber/reservations", reservationRoutes);

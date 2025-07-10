@@ -6,7 +6,6 @@ import {
   updateReservation,
   deleteReservation,
 } from "../controllers/reservationController.js";
-import { verifyToken } from "../controllers/userController.js";
 
 const router = Router({ mergeParams: true });
 
@@ -223,7 +222,5 @@ router.put("/:reservationId", updateReservation);
  *         description: Réservation ou catway non trouvé
  */
 router.delete("/:reservationId", deleteReservation);
-
-router.use(verifyToken);
 
 export default router;
