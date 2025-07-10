@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Catways</title>
+  </head>
+  <body>
+    <h1>Gestion des catways</h1>
+    <nav>
+      <a href="/dashboard">Dashboard</a> | <a href="/users">Utilisateurs</a> |
+      <a href="/reservations">Réservations</a> |
+      <a href="/">Accueil</a>
+    </nav>
+    <% if (user) { %>
+    <div class="alert alert-info mt-3">
+      Connecté en tant que <strong><%= user.username %></strong> (<%= user.email
+      %>)
+    </div>
+    <% } %> <% if (success && success.length > 0) { %>
+    <div class="alert alert-success"><%= success[0] %></div>
+    <% } %> <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger"><%= error[0] %></div>
+    <% } %>
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Créer un nouveau catway</h5>
+        <form method="POST" action="/catways">
+          <div class="mb-3">
+            <label for="catwayNumber" class="form-label">Numéro</label>
+            <input
+              type="text"
+              class="form-control"
+              id="catwayNumber"
+              name="catwayNumber"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <input
+              type="text"
+              class="form-control"
+              id="type"
+              name="type"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="catwayState" class="form-label">État</label>
+            <input
+              type="text"
+              class="form-control"
+              id="catwayState"
+              name="catwayState"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Créer</button>
+        </form>
+      </div>
+    </div>
+    <% if (catwayToEdit) { %>
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Modifier le catway</h5>
+        <form method="POST" action="/catways/<%= catwayToEdit._id %>/edit">
+          <div class="mb-3">
+            <label for="edit-catwayNumber" class="form-label">Numéro</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-catwayNumber"
+              name="catwayNumber"
+              value="<%= catwayToEdit.catwayNumber %>"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="edit-type" class="form-label">Type</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-type"
+              name="type"
+              value="<%= catwayToEdit.type %>"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="edit-catwayState" class="form-label">État</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-catwayState"
+              name="catwayState"
+              value="<%= catwayToEdit.catwayState %>"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <a href="/catways" class="btn btn-secondary ms-2">Annuler</a>
+        </form>
+      </div>
+    </div>
+    <% } %> <% if (catways && catways.length > 0) { %>
+    <table class="table table-bordered mt-4">
+      <thead>
+        <tr>
+          <th>Numéro</th>
+          <th>Type</th>
+          <th>État</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% catways.forEach(c => { %>
+        <tr>
+          <td><%= c.catwayNumber %></td>
+          <td><%= c.type %></td>
+          <td><%= c.catwayState %></td>
+          <td>
+            <form
+              method="POST"
+              action="/catways/<%= c._id %>/delete"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Supprimer ce catway ?')"
+              >
+                Supprimer
+              </button>
+            </form>
+            <a
+              href="/catways/<%= c._id %>/edit"
+              class="btn btn-warning btn-sm ms-2"
+              >Modifier</a
+            >
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p class="mt-4">Aucun catway.</p>
+    <% } %>
+  </body>
+</html>

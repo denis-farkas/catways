@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Réservations Catways</title>
+  </head>
+  <body>
+    <h1>Gestion des réservations</h1>
+    <nav>
+      <a href="/dashboard">Dashboard</a> | <a href="/users">Utilisateurs</a> |
+      <a href="/catways">Catways</a> |
+      <a href="/">Accueil</a>
+    </nav>
+    <% if (user) { %>
+    <div class="alert alert-info mt-3">
+      Connecté en tant que <strong><%= user.username %></strong> (<%= user.email
+      %>)
+    </div>
+    <% } %> <% if (success && success.length > 0) { %>
+    <div class="alert alert-success"><%= success[0] %></div>
+    <% } %> <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger"><%= error[0] %></div>
+    <% } %>
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Créer une nouvelle réservation</h5>
+        <form method="POST" action="/reservations">
+          <div class="mb-3">
+            <label for="catwayNumber" class="form-label">Catway</label>
+            <select
+              class="form-select"
+              id="catwayNumber"
+              name="catwayNumber"
+              required
+            >
+              <option value="">Choisir...</option>
+              <% catways.forEach(c => { %>
+              <option value="<%= c.catwayNumber %>">
+                <%= c.catwayNumber %>
+              </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="clientName" class="form-label">Client</label>
+            <input
+              type="text"
+              class="form-control"
+              id="clientName"
+              name="clientName"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="boatName" class="form-label">Bateau</label>
+            <input
+              type="text"
+              class="form-control"
+              id="boatName"
+              name="boatName"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="startDate" class="form-label">Début</label>
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              name="startDate"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="endDate" class="form-label">Fin</label>
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              name="endDate"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Créer</button>
+        </form>
+      </div>
+    </div>
+    <% if (reservationToEdit) { %>
+      <div class="card mt-4 mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Modifier la réservation</h5>
+          <form method="POST" action="/reservations/<%= reservationToEdit._id %>/edit">
+            <div class="mb-3">
+              <label for="edit-catwayNumber" class="form-label">Catway</label>
+              <select class="form-select" id="edit-catwayNumber" name="catwayNumber" required>
+                <% catways.forEach(c => { %>
+                  <option value="<%= c.catwayNumber %>" <%= reservationToEdit.catwayNumber === c.catwayNumber ? 'selected' : '' %>><%= c.catwayNumber %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="edit-clientName" class="form-label">Client</label>
+              <input type="text" class="form-control" id="edit-clientName" name="clientName" value="<%= reservationToEdit.clientName %>" required>
+            </div>
+            <div class="mb-3">
+              <label for="edit-boatName" class="form-label">Bateau</label>
+              <input type="text" class="form-control" id="edit-boatName" name="boatName" value="<%= reservationToEdit.boatName %>" required>
+            </div>
+            <div class="mb-3">
+              <label for="edit-startDate" class="form-label">Début</label>
+              <input type="date" class="form-control" id="edit-startDate" name="startDate" value="<%= reservationToEdit.startDate ? reservationToEdit.startDate.toISOString().slice(0,10) : '' %>" required>
+            </div>
+            <div class="mb-3">
+              <label for="edit-endDate" class="form-label">Fin</label>
+              <input type="date" class="form-control" id="edit-endDate" name="endDate" value="<%= reservationToEdit.endDate ? reservationToEdit.endDate.toISOString().slice(0,10) : '' %>" required>
+            </div>
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+            <a href="/reservations" class="btn btn-secondary ms-2">Annuler</a>
+          </form>
+        </div>
+      </div>
+    <% } %>
+    <% if (reservations && reservations.length > 0) { %>
+    <table class="table table-bordered mt-4">
+      <thead>
+        <tr>
+          <th>Catway</th>
+          <th>Client</th>
+          <th>Bateau</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% reservations.forEach(r => { %>
+        <tr>
+          <td><%= r.catwayNumber %></td>
+          <td><%= r.clientName %></td>
+          <td><%= r.boatName %></td>
+          <td><%= r.startDate ? r.startDate.toString().slice(0,10) : '' %></td>
+          <td><%= r.endDate ? r.endDate.toString().slice(0,10) : '' %></td>
+          <td>
+            <form
+              method="POST"
+              action="/reservations/<%= r._id %>/delete"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Supprimer cette réservation ?')"
+              >
+                Supprimer
+              </button>
+            </form>
+            <a
+              href="/reservations/<%= r._id %>/edit"
+              class="btn btn-warning btn-sm ms-2"
+              >Modifier</a
+            >
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p class="mt-4">Aucune réservation.</p>
+    <% } %>
+  </body>
+</html>

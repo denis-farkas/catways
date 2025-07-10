@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Utilisateurs Catways</title>
+  </head>
+  <body>
+    <h1>Gestion des utilisateurs</h1>
+    <nav>
+      <a href="/dashboard">Dashboard</a> | <a href="/catways">Catways</a> |
+      <a href="/reservations">Réservations</a> |
+      <a href="/">Accueil</a>
+    </nav>
+    <% if (user) { %>
+    <div class="alert alert-info mt-3">
+      Connecté en tant que <strong><%= user.username %></strong> (<%= user.email
+      %>)
+    </div>
+    <% } %> <% if (success && success.length > 0) { %>
+    <div class="alert alert-success"><%= success[0] %></div>
+    <% } %> <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger"><%= error[0] %></div>
+    <% } %>
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Créer un nouvel utilisateur</h5>
+        <form method="POST" action="/users">
+          <div class="mb-3">
+            <label for="username" class="form-label">Nom</label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Créer</button>
+        </form>
+      </div>
+    </div>
+    <% if (userToEdit) { %>
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Modifier l'utilisateur</h5>
+        <form method="POST" action="/users/<%= userToEdit._id %>/edit">
+          <div class="mb-3">
+            <label for="edit-username" class="form-label">Nom</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-username"
+              name="username"
+              value="<%= userToEdit.username %>"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="edit-email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="edit-email"
+              name="email"
+              value="<%= userToEdit.email %>"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="edit-password" class="form-label"
+              >Nouveau mot de passe (laisser vide pour ne pas changer)</label
+            >
+            <input
+              type="password"
+              class="form-control"
+              id="edit-password"
+              name="password"
+            />
+          </div>
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <a href="/users" class="btn btn-secondary ms-2">Annuler</a>
+        </form>
+      </div>
+    </div>
+    <% } %>
+    <p>Liste, création, modification et suppression des utilisateurs ici.</p>
+    <% if (users && users.length > 0) { %>
+    <table class="table table-bordered mt-4">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+        <tr>
+          <td><%= u.username %></td>
+          <td><%= u.email %></td>
+          <td>
+            <form
+              method="POST"
+              action="/users/<%= u._id %>/delete"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Supprimer cet utilisateur ?')"
+              >
+                Supprimer
+              </button>
+            </form>
+            <a
+              href="/users/<%= u._id %>/edit"
+              class="btn btn-warning btn-sm ms-2"
+              >Modifier</a
+            >
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p class="mt-4">Aucun utilisateur.</p>
+    <% } %>
+  </body>
+</html>

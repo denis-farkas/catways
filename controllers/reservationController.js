@@ -1,4 +1,4 @@
-import Reservation from "../models/Reservation.js";
+import * as reservationService from "../services/reservationService.js";
 import Catway from "../models/Catway.js";
 
 export const createReservation = async (req, res) => {
@@ -9,29 +9,24 @@ export const createReservation = async (req, res) => {
     if (!catway) return res.status(404).json({ message: "Catway non trouvé." });
 
     // Contrôle de chevauchement
-    const overlap = await Reservation.findOne({
+    const overlap = await reservationService.findOverlap(
       catwayNumber,
-      $or: [
-        {
-          startDate: { $lte: endDate },
-          endDate: { $gte: startDate },
-        },
-      ],
-    });
+      startDate,
+      endDate
+    );
     if (overlap) {
       return res
         .status(400)
         .json({ message: "Ce catway est déjà réservé sur cette période." });
     }
 
-    const reservation = new Reservation({
+    const reservation = await reservationService.createReservation({
       catwayNumber,
       clientName,
       boatName,
       startDate,
       endDate,
     });
-    await reservation.save();
     res.status(201).json(reservation);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -41,7 +36,9 @@ export const createReservation = async (req, res) => {
 export const getReservations = async (req, res) => {
   try {
     const catwayNumber = req.params.catwayNumber;
-    const reservations = await Reservation.find({ catwayNumber });
+    const reservations = await reservationService.getAllReservationsByCatway(
+      catwayNumber
+    );
     res.json(reservations);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -51,11 +48,10 @@ export const getReservations = async (req, res) => {
 export const getReservation = async (req, res) => {
   try {
     const { catwayNumber, reservationId } = req.params;
-    const reservation = await Reservation.findOne({
-      _id: reservationId,
-      catwayNumber,
-    });
-    if (!reservation)
+    const reservation = await reservationService.findReservationById(
+      reservationId
+    );
+    if (!reservation || reservation.catwayNumber !== catwayNumber)
       return res.status(404).json({ message: "Réservation non trouvée." });
     res.json(reservation);
   } catch (err) {
@@ -67,25 +63,20 @@ export const updateReservation = async (req, res) => {
   try {
     const { catwayNumber, reservationId } = req.params;
     const { clientName, boatName, startDate, endDate } = req.body;
-    const reservation = await Reservation.findOne({
-      _id: reservationId,
-      catwayNumber,
-    });
-    if (!reservation)
+    const reservation = await reservationService.findReservationById(
+      reservationId
+    );
+    if (!reservation || reservation.catwayNumber !== catwayNumber)
       return res.status(404).json({ message: "Réservation non trouvée." });
 
     // Contrôle de chevauchement (hors soi-même)
     if (startDate && endDate) {
-      const overlap = await Reservation.findOne({
+      const overlap = await reservationService.findOverlap(
         catwayNumber,
-        _id: { $ne: reservationId },
-        $or: [
-          {
-            startDate: { $lte: endDate },
-            endDate: { $gte: startDate },
-          },
-        ],
-      });
+        startDate,
+        endDate,
+        reservationId
+      );
       if (overlap) {
         return res
           .status(400)
@@ -93,12 +84,13 @@ export const updateReservation = async (req, res) => {
       }
     }
 
-    if (clientName) reservation.clientName = clientName;
-    if (boatName) reservation.boatName = boatName;
-    if (startDate) reservation.startDate = startDate;
-    if (endDate) reservation.endDate = endDate;
-    await reservation.save();
-    res.json(reservation);
+    const updated = await reservationService.updateReservation(reservationId, {
+      clientName,
+      boatName,
+      startDate,
+      endDate,
+    });
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -107,12 +99,12 @@ export const updateReservation = async (req, res) => {
 export const deleteReservation = async (req, res) => {
   try {
     const { catwayNumber, reservationId } = req.params;
-    const reservation = await Reservation.findOneAndDelete({
-      _id: reservationId,
-      catwayNumber,
-    });
-    if (!reservation)
+    const reservation = await reservationService.findReservationById(
+      reservationId
+    );
+    if (!reservation || reservation.catwayNumber !== catwayNumber)
       return res.status(404).json({ message: "Réservation non trouvée." });
+    await reservationService.deleteReservation(reservationId);
     res.json({ message: "Réservation supprimée." });
   } catch (err) {
     res.status(500).json({ message: err.message });

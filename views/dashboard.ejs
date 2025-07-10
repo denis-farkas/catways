@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard Catways</title>
+  </head>
+  <body>
+    <h1>Tableau de bord</h1>
+    <nav>
+      <a href="/users">Utilisateurs</a> | <a href="/catways">Catways</a> |
+      <a href="/reservations">Réservations</a> |
+      <a href="/">Accueil</a>
+    </nav>
+    <p>Bienvenue sur le tableau de bord Catways.</p>
+    <% if (user) { %>
+    <div class="alert alert-info mt-3">
+      Connecté en tant que <strong><%= user.username %></strong> (<%= user.email
+      %>)
+    </div>
+    <% } %>
+  </body>
+</html>
