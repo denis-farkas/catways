@@ -23,7 +23,7 @@
     <% } %> <% if (error && error.length > 0) { %>
     <div class="alert alert-danger"><%= error[0] %></div>
     <% } %>
-    <div class="card mt-4 mb-4">
+    <div class="card mt-4 mb-4 w-50 mx-auto">
       <div class="card-body">
         <h5 class="card-title">Créer une nouvelle réservation</h5>
         <form method="POST" action="/reservations">
@@ -88,7 +88,7 @@
       </div>
     </div>
     <% if (reservationToEdit) { %>
-      <div class="card mt-4 mb-4">
+      <div class="card mt-4 mb-4 w-50 mx-auto">
         <div class="card-body">
           <h5 class="card-title">Modifier la réservation</h5>
           <form method="POST" action="/reservations/<%= reservationToEdit._id %>/edit">

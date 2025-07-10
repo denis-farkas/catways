@@ -215,9 +215,9 @@ app.post("/users/:id/edit", requireAuth, async (req, res) => {
 });
 
 app.post("/catways", requireAuth, async (req, res) => {
-  const { catwayNumber, type, catwayState } = req.body;
+  const { catwayNumber, catwayType, catwayState } = req.body;
   try {
-    if (!catwayNumber || !type || !catwayState) {
+    if (!catwayNumber || !catwayType || !catwayState) {
       req.flash("error", "Tous les champs sont obligatoires.");
       return res.redirect("/catways");
     }
@@ -226,7 +226,7 @@ app.post("/catways", requireAuth, async (req, res) => {
       req.flash("error", "Numéro de catway déjà utilisé.");
       return res.redirect("/catways");
     }
-    await catwayService.createCatway({ catwayNumber, type, catwayState });
+    await catwayService.createCatway({ catwayNumber, catwayType, catwayState });
     req.flash("success", "Catway créé avec succès.");
     res.redirect("/catways");
   } catch (err) {
@@ -254,18 +254,18 @@ app.get("/catways/:id/edit", requireAuth, async (req, res) => {
 });
 
 app.post("/catways/:id/edit", requireAuth, async (req, res) => {
-  const { catwayNumber, type, catwayState } = req.body;
+  const { catwayNumber, catwayType, catwayState } = req.body;
   try {
     await catwayService.updateCatway(req.params.id, {
       catwayNumber,
-      type,
+      catwayType,
       catwayState,
     });
     req.flash("success", "Catway modifié avec succès.");
     res.redirect("/catways");
   } catch (err) {
     req.flash("error", err.message || "Erreur lors de la modification.");
-    res.redirect("/catways");
+    res.redirect(`/catways/${req.params.id}/edit`);
   }
 });
 
