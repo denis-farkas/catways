@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoutes.js";
 import catwayRoutes from "./routes/catwayRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import { verifyToken } from "./controllers/userController.js";
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,17 @@ mongoose
   .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/catways")
   .then(() => console.log("MongoDB connecté"))
   .catch((err) => console.error(err));
+
+// Middleware pour exclure /users/login et /users (création)
+app.use((req, res, next) => {
+  if (
+    (req.path === "/users/login" && req.method === "POST") ||
+    (req.path === "/users" && req.method === "POST")
+  ) {
+    return next();
+  }
+  verifyToken(req, res, next);
+});
 
 // Routes
 app.use("/users", userRoutes);
@@ -30,6 +42,16 @@ const swaggerOptions = {
       description: "API de gestion des catways, utilisateurs et réservations",
     },
     servers: [{ url: "http://localhost:3000" }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
   },
   apis: ["./routes/*.js"],
 };

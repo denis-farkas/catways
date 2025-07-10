@@ -6,6 +6,7 @@ import {
   updateReservation,
   deleteReservation,
 } from "../controllers/reservationController.js";
+import { verifyToken } from "../controllers/userController.js";
 
 const router = Router({ mergeParams: true });
 
@@ -64,6 +65,8 @@ const router = Router({ mergeParams: true });
  *   post:
  *     summary: Créer une nouvelle réservation pour un catway
  *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: catwayNumber
@@ -97,6 +100,8 @@ router.post("/", createReservation);
  *   get:
  *     summary: Récupérer toutes les réservations d'un catway
  *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: catwayNumber
@@ -124,6 +129,8 @@ router.get("/", getReservations);
  *   get:
  *     summary: Récupérer une réservation spécifique
  *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: catwayNumber
@@ -155,6 +162,8 @@ router.get("/:reservationId", getReservation);
  *   put:
  *     summary: Mettre à jour une réservation
  *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: catwayNumber
@@ -192,6 +201,8 @@ router.put("/:reservationId", updateReservation);
  *   delete:
  *     summary: Supprimer une réservation
  *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: catwayNumber
@@ -212,5 +223,7 @@ router.put("/:reservationId", updateReservation);
  *         description: Réservation ou catway non trouvé
  */
 router.delete("/:reservationId", deleteReservation);
+
+router.use(verifyToken);
 
 export default router;

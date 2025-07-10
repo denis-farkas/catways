@@ -7,6 +7,7 @@ import {
   deleteCatway,
 } from "../controllers/catwayController.js";
 import reservationRoutes from "./reservationRoutes.js";
+import { verifyToken } from "../controllers/userController.js";
 
 const router = Router();
 
@@ -53,6 +54,8 @@ const router = Router();
  *   post:
  *     summary: Créer un nouveau catway
  *     tags: [Catways]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -69,7 +72,7 @@ const router = Router();
  *       400:
  *         description: Erreur de validation
  */
-router.post("/", createCatway);
+router.post("/", verifyToken, createCatway);
 
 /**
  * @swagger
@@ -77,6 +80,8 @@ router.post("/", createCatway);
  *   get:
  *     summary: Récupérer tous les catways
  *     tags: [Catways]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Liste des catways
@@ -95,6 +100,8 @@ router.get("/", getCatways);
  *   get:
  *     summary: Récupérer un catway par ID
  *     tags: [Catways]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -120,6 +127,8 @@ router.get("/:id", getCatway);
  *   put:
  *     summary: Mettre à jour un catway
  *     tags: [Catways]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -143,7 +152,7 @@ router.get("/:id", getCatway);
  *       404:
  *         description: Catway non trouvé
  */
-router.put("/:id", updateCatway);
+router.put("/:id", verifyToken, updateCatway);
 
 /**
  * @swagger
@@ -151,6 +160,8 @@ router.put("/:id", updateCatway);
  *   delete:
  *     summary: Supprimer un catway
  *     tags: [Catways]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -164,7 +175,7 @@ router.put("/:id", updateCatway);
  *       404:
  *         description: Catway non trouvé
  */
-router.delete("/:id", deleteCatway);
+router.delete("/:id", verifyToken, deleteCatway);
 
 // Sous-ressource réservations
 router.use("/:catwayNumber/reservations", reservationRoutes);

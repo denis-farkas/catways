@@ -5,6 +5,7 @@ import {
   getUser,
   updateUser,
   deleteUser,
+  loginUser,
 } from "../controllers/userController.js";
 
 const router = Router();
@@ -47,6 +48,7 @@ const router = Router();
  *   post:
  *     summary: Créer un nouvel utilisateur
  *     tags: [Users]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -159,5 +161,49 @@ router.put("/:id", updateUser);
  *         description: Utilisateur non trouvé
  */
 router.delete("/:id", deleteUser);
+
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Se connecter
+ *     tags: [Users]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email de l'utilisateur
+ *               password:
+ *                 type: string
+ *                 description: Mot de passe de l'utilisateur
+ *             example:
+ *               email: john.doe@example.com
+ *               password: password123
+ *     responses:
+ *       200:
+ *         description: Connexion réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: Token JWT
+ *               example:
+ *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwZDBmZTRmNTMxMTIzNjE2OGExMDljYSIsImlhdCI6MTYxNzIwMDAwMCwiZXhwIjoxNjE3MjA4MDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+ *       401:
+ *         description: Email ou mot de passe incorrect
+ */
+router.post("/login", loginUser);
 
 export default router;
