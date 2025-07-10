@@ -24,6 +24,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Pour POST formulaire
 
 // Connexion MongoDB
 mongoose
@@ -31,12 +32,28 @@ mongoose
   .then(() => console.log("MongoDB connecté"))
   .catch((err) => console.error(err));
 
-// Autoriser le front React
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+// Configuration de la session (doit être AVANT le middleware de protection et les routes)
+app.use(
+  session({
+    secret: "votre_secret_session", // À remplacer par une vraie clé secrète en prod
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 8 }, // 8h
+  })
+);
 
-// Middleware pour exclure /users/login, /users (création) et /api-docs
+app.use(flash());
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
+});
+
+// Middleware pour exclure /login, /logout, /users/login (POST), /users (POST) et /api-docs
 app.use((req, res, next) => {
   if (
+    req.path === "/login" ||
+    req.path === "/logout" ||
     (req.path === "/users/login" && req.method === "POST") ||
     (req.path === "/users" && req.method === "POST") ||
     req.path.startsWith("/api-docs")
@@ -46,11 +63,7 @@ app.use((req, res, next) => {
   requireAuth(req, res, next);
 });
 
-// Routes
-app.use("/users", userRoutes);
-app.use("/catways", catwayRoutes);
-
-// Routes EJS protégées
+// ROUTES EJS (vues) AVANT les routes API REST
 app.get("/dashboard", requireAuth, async (req, res) => {
   const user = await User.findById(req.session.userId).lean();
   res.render("dashboard", { user });
@@ -58,12 +71,12 @@ app.get("/dashboard", requireAuth, async (req, res) => {
 app.get("/users", requireAuth, async (req, res) => {
   const user = await User.findById(req.session.userId).lean();
   const users = await userService.getAllUsers();
-  res.render("users", { user, users });
+  res.render("users", { user, users, userToEdit: null });
 });
 app.get("/catways", requireAuth, async (req, res) => {
   const user = await User.findById(req.session.userId).lean();
   const catways = await catwayService.getAllCatways();
-  res.render("catways", { user, catways });
+  res.render("catways", { user, catways, catwayToEdit: null });
 });
 app.get("/reservations", requireAuth, async (req, res) => {
   const user = await User.findById(req.session.userId).lean();
@@ -77,7 +90,12 @@ app.get("/reservations", requireAuth, async (req, res) => {
       resvs.map((r) => ({ ...r.toObject(), catwayNumber: catway.catwayNumber }))
     );
   }
-  res.render("reservations", { user, catways, reservations });
+  res.render("reservations", {
+    user,
+    catways,
+    reservations,
+    reservationToEdit: null,
+  });
 });
 
 // Route GET /login (affiche le formulaire)
@@ -174,26 +192,8 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Configuration de la session
-app.use(
-  session({
-    secret: "votre_secret_session", // À remplacer par une vraie clé secrète en prod
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 8 }, // 8h
-  })
-);
-
-app.use(flash());
-app.use((req, res, next) => {
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  next();
-});
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.urlencoded({ extended: true })); // Pour POST formulaire
 
 app.get("/users/:id/edit", requireAuth, async (req, res) => {
   const user = await User.findById(req.session.userId).lean();
@@ -373,6 +373,18 @@ app.post("/reservations/:id/edit", requireAuth, async (req, res) => {
     res.redirect(`/reservations/${req.params.id}/edit`);
   }
 });
+
+// Route GET / (accueil)
+app.get("/", (req, res) => {
+  res.redirect("/dashboard");
+});
+
+// Servir les fichiers statiques (CSS, JS, images)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ROUTES API REST APRÈS les vues EJS
+app.use("/users", userRoutes);
+app.use("/catways", catwayRoutes);
 
 // Lancement serveur
 const PORT = process.env.PORT || 3000;

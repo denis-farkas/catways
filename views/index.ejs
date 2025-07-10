@@ -2,10 +2,24 @@
 <html>
   <head>
     <title>Accueil Catways</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <h1>Bienvenue sur Catways</h1>
-    <p>Application de gestion des catways, utilisateurs et réservations.</p>
-    <a href="/dashboard">Tableau de bord</a>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="card-title mb-4">Bienvenue sur Catways</h1>
+          <nav class="mb-4">
+            <a href="/login" class="btn btn-primary me-2">Connexion</a>
+            <a href="/dashboard" class="btn btn-outline-primary">Dashboard</a>
+          </nav>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

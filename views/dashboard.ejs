@@ -1,21 +1,37 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Dashboard Catways</title>
+    <title>Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <h1>Tableau de bord</h1>
-    <nav>
-      <a href="/users">Utilisateurs</a> | <a href="/catways">Catways</a> |
-      <a href="/reservations">Réservations</a> |
-      <a href="/">Accueil</a>
-    </nav>
-    <p>Bienvenue sur le tableau de bord Catways.</p>
-    <% if (user) { %>
-    <div class="alert alert-info mt-3">
-      Connecté en tant que <strong><%= user.username %></strong> (<%= user.email
-      %>)
+  <body class="bg-light">
+    <div class="container mt-5">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="card-title mb-4">Bienvenue sur le Dashboard</h1>
+          <nav class="mb-4">
+            <a href="/users" class="btn btn-outline-primary me-2"
+              >Utilisateurs</a
+            >
+            <a href="/catways" class="btn btn-outline-primary me-2">Catways</a>
+            <a href="/reservations" class="btn btn-outline-primary me-2"
+              >Réservations</a
+            >
+            <a href="/logout" class="btn btn-outline-danger">Déconnexion</a>
+          </nav>
+          <% if (user) { %>
+          <div class="alert alert-info">
+            Connecté en tant que <strong><%= user.username %></strong> (<%=
+            user.email %>)
+          </div>
+          <% } %>
+        </div>
+      </div>
     </div>
-    <% } %>
   </body>
 </html>
