@@ -7,6 +7,7 @@ import catwayRoutes from "./routes/catwayRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import { verifyToken } from "./controllers/userController.js";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
@@ -17,11 +18,15 @@ mongoose
   .then(() => console.log("MongoDB connecté"))
   .catch((err) => console.error(err));
 
-// Middleware pour exclure /users/login et /users (création)
+// Autoriser le front React
+app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+
+// Middleware pour exclure /users/login, /users (création) et /api-docs
 app.use((req, res, next) => {
   if (
     (req.path === "/users/login" && req.method === "POST") ||
-    (req.path === "/users" && req.method === "POST")
+    (req.path === "/users" && req.method === "POST") ||
+    req.path.startsWith("/api-docs")
   ) {
     return next();
   }

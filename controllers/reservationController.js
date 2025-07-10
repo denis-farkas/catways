@@ -7,6 +7,23 @@ export const createReservation = async (req, res) => {
     const catwayNumber = req.params.catwayNumber;
     const catway = await Catway.findOne({ catwayNumber });
     if (!catway) return res.status(404).json({ message: "Catway non trouvé." });
+
+    // Contrôle de chevauchement
+    const overlap = await Reservation.findOne({
+      catwayNumber,
+      $or: [
+        {
+          startDate: { $lte: endDate },
+          endDate: { $gte: startDate },
+        },
+      ],
+    });
+    if (overlap) {
+      return res
+        .status(400)
+        .json({ message: "Ce catway est déjà réservé sur cette période." });
+    }
+
     const reservation = new Reservation({
       catwayNumber,
       clientName,
@@ -56,6 +73,26 @@ export const updateReservation = async (req, res) => {
     });
     if (!reservation)
       return res.status(404).json({ message: "Réservation non trouvée." });
+
+    // Contrôle de chevauchement (hors soi-même)
+    if (startDate && endDate) {
+      const overlap = await Reservation.findOne({
+        catwayNumber,
+        _id: { $ne: reservationId },
+        $or: [
+          {
+            startDate: { $lte: endDate },
+            endDate: { $gte: startDate },
+          },
+        ],
+      });
+      if (overlap) {
+        return res
+          .status(400)
+          .json({ message: "Ce catway est déjà réservé sur cette période." });
+      }
+    }
+
     if (clientName) reservation.clientName = clientName;
     if (boatName) reservation.boatName = boatName;
     if (startDate) reservation.startDate = startDate;
