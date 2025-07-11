@@ -17,6 +17,34 @@ import User from "./models/User.js";
 import flash from "connect-flash";
 import * as catwayService from "./services/catwayService.js";
 import * as reservationService from "./services/reservationService.js";
+import { renderDashboard } from "./controllers/dashboardController.js";
+import {
+  renderUsersPage,
+  renderEditUserPage,
+} from "./controllers/userPageController.js";
+import {
+  renderCatwaysPage,
+  renderEditCatwayPage,
+} from "./controllers/catwayPageController.js";
+import {
+  renderReservationsPage,
+  renderEditReservationPage,
+} from "./controllers/reservationPageController.js";
+import {
+  createUserEjs,
+  deleteUserEjs,
+  editUserEjs,
+} from "./controllers/userPageController.js";
+import {
+  createCatwayEjs,
+  deleteCatwayEjs,
+  editCatwayEjs,
+} from "./controllers/catwayPageController.js";
+import {
+  createReservationEjs,
+  deleteReservationEjs,
+  editReservationEjs,
+} from "./controllers/reservationPageController.js";
 
 // Pour __dirname avec ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -64,39 +92,13 @@ app.use((req, res, next) => {
 });
 
 // ROUTES EJS (vues) AVANT les routes API REST
-app.get("/dashboard", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  res.render("dashboard", { user });
-});
-app.get("/users", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const users = await userService.getAllUsers();
-  res.render("users", { user, users, userToEdit: null });
-});
-app.get("/catways", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const catways = await catwayService.getAllCatways();
-  res.render("catways", { user, catways, catwayToEdit: null });
-});
-app.get("/reservations", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const catways = await catwayService.getAllCatways();
-  let reservations = [];
-  for (const catway of catways) {
-    const resvs = await reservationService.getAllReservationsByCatway(
-      catway.catwayNumber
-    );
-    reservations = reservations.concat(
-      resvs.map((r) => ({ ...r.toObject(), catwayNumber: catway.catwayNumber }))
-    );
-  }
-  res.render("reservations", {
-    user,
-    catways,
-    reservations,
-    reservationToEdit: null,
-  });
-});
+app.get("/dashboard", requireAuth, renderDashboard);
+app.get("/users", requireAuth, renderUsersPage);
+app.get("/users/:id/edit", requireAuth, renderEditUserPage);
+app.get("/catways", requireAuth, renderCatwaysPage);
+app.get("/catways/:id/edit", requireAuth, renderEditCatwayPage);
+app.get("/reservations", requireAuth, renderReservationsPage);
+app.get("/reservations/:id/edit", requireAuth, renderEditReservationPage);
 
 // Route GET /login (affiche le formulaire)
 app.get("/login", (req, res) => {
@@ -119,33 +121,9 @@ app.post("/login", async (req, res) => {
 });
 
 // Route POST /users (créer un nouvel utilisateur)
-app.post("/users", requireAuth, async (req, res) => {
-  const { username, email, password } = req.body;
-  try {
-    if (!username || !email || !password) {
-      req.flash("error", "Tous les champs sont obligatoires.");
-      return res.redirect("/users");
-    }
-    if (password.length < 5) {
-      req.flash(
-        "error",
-        "Le mot de passe doit contenir au moins 5 caractères."
-      );
-      return res.redirect("/users");
-    }
-    const existing = await userService.findUserByEmail(email);
-    if (existing) {
-      req.flash("error", "Email déjà utilisé.");
-      return res.redirect("/users");
-    }
-    await userService.createUser({ username, email, password });
-    req.flash("success", "Utilisateur créé avec succès.");
-    res.redirect("/users");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la création.");
-    res.redirect("/users");
-  }
-});
+app.post("/users", requireAuth, createUserEjs);
+app.post("/users/:id/delete", requireAuth, deleteUserEjs);
+app.post("/users/:id/edit", requireAuth, editUserEjs);
 
 // Route POST /users/:id/delete (supprimer un utilisateur)
 app.post("/users/:id/delete", requireAuth, async (req, res) => {
@@ -195,184 +173,13 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-app.get("/users/:id/edit", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const userToEdit = await userService.findUserById(req.params.id);
-  const users = await userService.getAllUsers();
-  res.render("users", { user, users, userToEdit });
-});
+app.post("/catways", requireAuth, createCatwayEjs);
+app.post("/catways/:id/delete", requireAuth, deleteCatwayEjs);
+app.post("/catways/:id/edit", requireAuth, editCatwayEjs);
 
-app.post("/users/:id/edit", requireAuth, async (req, res) => {
-  const { username, email, password } = req.body;
-  try {
-    await userService.updateUser(req.params.id, { username, email, password });
-    req.flash("success", "Utilisateur modifié avec succès.");
-    res.redirect("/users");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la modification.");
-    res.redirect("/users");
-  }
-});
-
-app.post("/catways", requireAuth, async (req, res) => {
-  const { catwayNumber, catwayType, catwayState } = req.body;
-  try {
-    if (!catwayNumber || !catwayType || !catwayState) {
-      req.flash("error", "Tous les champs sont obligatoires.");
-      return res.redirect("/catways");
-    }
-    const existing = await catwayService.findCatwayByNumber(catwayNumber);
-    if (existing) {
-      req.flash("error", "Numéro de catway déjà utilisé.");
-      return res.redirect("/catways");
-    }
-    await catwayService.createCatway({ catwayNumber, catwayType, catwayState });
-    req.flash("success", "Catway créé avec succès.");
-    res.redirect("/catways");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la création.");
-    res.redirect("/catways");
-  }
-});
-
-app.post("/catways/:id/delete", requireAuth, async (req, res) => {
-  try {
-    await catwayService.deleteCatway(req.params.id);
-    req.flash("success", "Catway supprimé.");
-    res.redirect("/catways");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la suppression.");
-    res.redirect("/catways");
-  }
-});
-
-app.get("/catways/:id/edit", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const catwayToEdit = await catwayService.findCatwayById(req.params.id);
-  const catways = await catwayService.getAllCatways();
-  res.render("catways", { user, catways, catwayToEdit });
-});
-
-app.post("/catways/:id/edit", requireAuth, async (req, res) => {
-  const { catwayNumber, catwayType, catwayState } = req.body;
-  try {
-    await catwayService.updateCatway(req.params.id, {
-      catwayNumber,
-      catwayType,
-      catwayState,
-    });
-    req.flash("success", "Catway modifié avec succès.");
-    res.redirect("/catways");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la modification.");
-    res.redirect(`/catways/${req.params.id}/edit`);
-  }
-});
-
-app.post("/reservations", requireAuth, async (req, res) => {
-  const { catwayNumber, clientName, boatName, startDate, endDate } = req.body;
-  try {
-    if (!catwayNumber || !clientName || !boatName || !startDate || !endDate) {
-      req.flash("error", "Tous les champs sont obligatoires.");
-      return res.redirect("/reservations");
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      req.flash("error", "La date de début doit précéder la date de fin.");
-      return res.redirect("/reservations");
-    }
-    const overlap = await reservationService.findOverlap(
-      catwayNumber,
-      startDate,
-      endDate
-    );
-    if (overlap) {
-      req.flash("error", "Chevauchement avec une réservation existante.");
-      return res.redirect("/reservations");
-    }
-    await reservationService.createReservation({
-      catwayNumber,
-      clientName,
-      boatName,
-      startDate,
-      endDate,
-    });
-    req.flash("success", "Réservation créée avec succès.");
-    res.redirect("/reservations");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la création.");
-    res.redirect("/reservations");
-  }
-});
-
-app.post("/reservations/:id/delete", requireAuth, async (req, res) => {
-  try {
-    await reservationService.deleteReservation(req.params.id);
-    req.flash("success", "Réservation supprimée.");
-    res.redirect("/reservations");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la suppression.");
-    res.redirect("/reservations");
-  }
-});
-
-app.get("/reservations/:id/edit", requireAuth, async (req, res) => {
-  const user = await User.findById(req.session.userId).lean();
-  const catways = await catwayService.getAllCatways();
-  let reservations = [];
-  for (const catway of catways) {
-    const resvs = await reservationService.getAllReservationsByCatway(
-      catway.catwayNumber
-    );
-    reservations = reservations.concat(
-      resvs.map((r) => ({ ...r.toObject(), catwayNumber: catway.catwayNumber }))
-    );
-  }
-  const reservationToEdit = await reservationService.findReservationById(
-    req.params.id
-  );
-  res.render("reservations", {
-    user,
-    catways,
-    reservations,
-    reservationToEdit,
-  });
-});
-
-app.post("/reservations/:id/edit", requireAuth, async (req, res) => {
-  const { catwayNumber, clientName, boatName, startDate, endDate } = req.body;
-  try {
-    if (!catwayNumber || !clientName || !boatName || !startDate || !endDate) {
-      req.flash("error", "Tous les champs sont obligatoires.");
-      return res.redirect(`/reservations/${req.params.id}/edit`);
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      req.flash("error", "La date de début doit précéder la date de fin.");
-      return res.redirect(`/reservations/${req.params.id}/edit`);
-    }
-    const overlap = await reservationService.findOverlap(
-      catwayNumber,
-      startDate,
-      endDate,
-      req.params.id
-    );
-    if (overlap) {
-      req.flash("error", "Chevauchement avec une réservation existante.");
-      return res.redirect(`/reservations/${req.params.id}/edit`);
-    }
-    await reservationService.updateReservation(req.params.id, {
-      catwayNumber,
-      clientName,
-      boatName,
-      startDate,
-      endDate,
-    });
-    req.flash("success", "Réservation modifiée avec succès.");
-    res.redirect("/reservations");
-  } catch (err) {
-    req.flash("error", err.message || "Erreur lors de la modification.");
-    res.redirect(`/reservations/${req.params.id}/edit`);
-  }
-});
+app.post("/reservations", requireAuth, createReservationEjs);
+app.post("/reservations/:id/delete", requireAuth, deleteReservationEjs);
+app.post("/reservations/:id/edit", requireAuth, editReservationEjs);
 
 // Route GET / (accueil)
 app.get("/", (req, res) => {
